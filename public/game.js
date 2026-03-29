@@ -157,6 +157,16 @@ const CHARACTERS = {
     situation: 'スマホいじりながら来店 📱🖤',
     greeting: (name) => `……（スマホをいじりながらチラッと見る）　……あ、${name}ちゃんか。……ん、別に。`,
     hints: ['最初は塩対応。めげるな', 'コンカフェやブランドの話題が刺さる', '共感が大事。否定は絶対NG'],
+  },
+  tenchou: {
+    name: '店長（うみ）', age: 32, avatar: '👩‍💼',
+    avatarBg: 'linear-gradient(135deg, #ffd700, #ff6b6b)',
+    type: '【裏ボス】元No.1キャスト',
+    detail: `⚠️ 全キャラ攻略で解放\n💀 全てのテクニックを見抜く最強の客\n✦ 本物の「心」でしか落とせない`,
+    situation: '？？？',
+    greeting: (name) => `あら、${name}ちゃん。……うみが客として来るの、珍しいでしょ？（意味深に微笑む）　今夜は「接客される側」を楽しませてもらおうかしら。`,
+    hints: ['営業トークは全部見抜かれる', '本音で話すしかない', '元キャストだから全てを知っている'],
+    hidden: true,
   }
 };
 
@@ -201,101 +211,182 @@ function savePoints(p) { localStorage.setItem('concafe_points', JSON.stringify(p
 function loadInventory() { try { const s = JSON.parse(localStorage.getItem('concafe_inventory_v2')); return s ? { ...DEFAULT_INVENTORY, ...s } : { ...DEFAULT_INVENTORY }; } catch { return { ...DEFAULT_INVENTORY }; } }
 function saveInventory(i) { localStorage.setItem('concafe_inventory_v2', JSON.stringify(i)); }
 
-// ===== スクリプトイベント（各キャラ3つに増量） =====
-const SCRIPTED_EVENTS = {
+// ===== 周回カウント =====
+function loadVisitCounts() { try { return JSON.parse(localStorage.getItem('concafe_visits')) || {}; } catch { return {}; } }
+function saveVisitCounts(v) { localStorage.setItem('concafe_visits', JSON.stringify(v)); }
+function incrementVisit(charId) {
+  const v = loadVisitCounts();
+  v[charId] = (v[charId] || 0) + 1;
+  saveVisitCounts(v);
+  return v[charId];
+}
+function getVisitCount(charId) { return (loadVisitCounts()[charId]) || 0; }
+
+// ===== スクリプトイベント（各キャラ6個、ランダムで3つ選出） =====
+const ALL_EVENTS = {
   masao: [
-    { trigger: { afterTurn: 1 }, narration: '【マサオが手を伸ばしてきた】',
-      text: 'ねぇねぇ、手見せて？手相見れるんだよ俺。……ほら……（手を握る）',
-      choices: [
-        { label: '「すごーい！見て見てっ♪」（乗せる）', affection: 12, mp: -8, flash: '💦 手を握られた！でも機嫌UP' },
-        { label: '「マサオさんの手あったかい♡」（逆手に取る）', affection: 15, mp: -5, flash: '💕 神対応！' },
-        { label: '「ドリンク取ってきますね！」（回避）', affection: -3, mp: 0, flash: '😅 逃げた' },
-      ]},
-    { trigger: { afterTurn: 3 }, narration: '【マサオの顔が赤い】',
-      text: '${name}ちゃんさぁ……今度ふたりで飲みに行かない？',
-      choices: [
-        { label: '「ここで会えるのが特別なんですよ？」（店内に留める）', affection: 10, mp: -3, flash: '💕 プロのかわし！' },
-        { label: '「二人きり……ドキドキしちゃう♡」（匂わせる）', affection: 18, mp: -10, flash: '💦💕 危険だが効果的！' },
-        { label: '「それはちょっと……」（断る）', affection: -15, mp: 0, flash: '😤 傷つけた！' },
-      ]},
-    { trigger: { afterTurn: 6 }, narration: '【マサオが肩に手を回そうとしてきた】',
-      text: '${name}ちゃんといると癒やされるよ。俺さ、嫁さんとはもうレスでさ……なんちゃって。',
-      choices: [
-        { label: '「モテるのにそんなこと言ってー」（褒めて流す）', affection: 10, mp: -5, flash: '💕 上手にかわした' },
-        { label: '「今日は私がマサオさんのもの♡」（全力営業）', affection: 20, mp: -15, flash: '💦💕 魂を削る！' },
-        { label: '「奥さん大事にしてください」（正論）', affection: -20, mp: 0, flash: '💔 空気読め！' },
-      ]},
+    { narration: '【マサオが手を伸ばしてきた】', text: 'ねぇねぇ、手見せて？手相見れるんだよ俺。……ほら……（手を握る）', choices: [
+      { label: '「すごーい！見て見てっ♪」（乗せる）', affection: 12, mp: -8, flash: '💦 手を握られた！でも機嫌UP' },
+      { label: '「マサオさんの手あったかい♡」（逆手に取る）', affection: 15, mp: -5, flash: '💕 神対応！' },
+      { label: '「ドリンク取ってきますね！」（回避）', affection: -3, mp: 0, flash: '😅 逃げた' },
+    ]},
+    { narration: '【マサオの顔が赤い】', text: '${name}ちゃんさぁ……今度ふたりで飲みに行かない？', choices: [
+      { label: '「ここで会えるのが特別なんですよ？」', affection: 10, mp: -3, flash: '💕 プロのかわし！' },
+      { label: '「二人きり……ドキドキしちゃう♡」', affection: 18, mp: -10, flash: '💦💕 危険だが効果的！' },
+      { label: '「それはちょっと……」', affection: -15, mp: 0, flash: '😤 傷つけた！' },
+    ]},
+    { narration: '【マサオが肩に手を回そうとした】', text: '${name}ちゃんといると癒やされるよ。俺さ、嫁とはもうレスでさ……なんちゃって。', choices: [
+      { label: '「モテるのにそんなこと言ってー」', affection: 10, mp: -5, flash: '💕 うまくかわした' },
+      { label: '「今日は私がマサオさんのもの♡」', affection: 20, mp: -15, flash: '💦💕 魂を削る！' },
+      { label: '「奥さん大事にしてください」', affection: -20, mp: 0, flash: '💔 空気読め！' },
+    ]},
+    { narration: '【マサオが急に真面目な顔に】', text: '${name}ちゃんは……俺みたいなおじさんの相手して楽しい？正直に言ってよ。', choices: [
+      { label: '「マサオさんの話、聞いてて飽きないですよ！」', affection: 15, mp: -3, flash: '💕 嬉しそう！' },
+      { label: '「楽しいに決まってるじゃないですか♡」', affection: 12, mp: -5, flash: '💕 ちょっと疑ってる' },
+      { label: '「まあ仕事ですからね〜」', affection: -18, mp: -3, flash: '😤 ガチで傷ついた' },
+    ]},
+    { narration: '【マサオが財布を出した】', text: 'よし！今日は奮発しちゃおうかな。${name}ちゃんが喜ぶなら安いもんだよ。', choices: [
+      { label: '「えー！マサオさん太っ腹〜♡」', affection: 15, mp: -3, flash: '💕💰 財布のヒモが緩んだ！' },
+      { label: '「無理しないでくださいね？」（気遣い）', affection: 18, mp: -3, flash: '💕 紳士扱いに弱い' },
+      { label: '「じゃあエンジェルで！」（ガツガツ）', affection: -10, mp: -5, flash: '😤 金目当てかよ' },
+    ]},
+    { narration: '【マサオがスマホの写真を見せてきた】', text: 'これ、先週のゴルフのスコア。いやぁ自己ベスト出ちゃってさ〜', choices: [
+      { label: '「すごい！教えてくださいよ〜」', affection: 12, mp: -5, flash: '💕 自慢話を聞いてくれる子' },
+      { label: '「ゴルフできる男の人かっこいい♡」', affection: 15, mp: -3, flash: '💕 調子に乗ってきた' },
+      { label: '「へぇ〜……」（興味薄）', affection: -8, mp: -3, flash: '😤 聞いてないじゃん' },
+    ]},
   ],
   takashi: [
-    { trigger: { afterTurn: 1 }, narration: '【タカシがスマホを向けてきた】',
-      text: '${name}ちゃんのインスタ全部保存してるよ。火曜と金曜がシフトでしょ？',
-      choices: [
-        { label: '「チェックしてくれてるの？嬉しい！」（喜ぶフリ）', affection: 12, mp: -8, flash: '😰 キモいけど好感度UP' },
-        { label: '「さすが情報通だね〜」（オタク褒め）', affection: 10, mp: -5, flash: '💕 くすぐった' },
-        { label: '「ちょっとそれ怖いかも」（本音）', affection: -12, mp: -3, flash: '😤 傷ついた！' },
-      ]},
-    { trigger: { afterTurn: 4 }, narration: '【タカシが声をひそめた】',
-      text: 'ねえ${name}ちゃん……LINE教えてよ。俺、本気なんだよね……',
-      choices: [
-        { label: '「ルールで交換できないの……ごめんね」（丁寧に断る）', affection: -5, mp: -3, flash: '😔 しょんぼり' },
-        { label: '「ここで会えるだけで嬉しいですよ♡」', affection: 8, mp: -5, flash: '💕 うまい返し！' },
-        { label: '「お店のアカウント教えるね！」（誘導）', affection: 15, mp: -8, flash: '💕💰 営業スキル！' },
-      ]},
-    { trigger: { afterTurn: 6 }, narration: '【タカシが真剣な目つきになった】',
-      text: '${name}ちゃんは俺のこと、どう思ってるの？本当のところ。',
-      choices: [
-        { label: '「タカシさんは私の一番の理解者だよ！」', affection: 15, mp: -10, flash: '💕 距離が縮まった' },
-        { label: '「みんな大切なお客さんだよ〜」', affection: -10, mp: -3, flash: '😤 聞きたい答えじゃない！' },
-        { label: '「推し愛には誰も勝てないよ！」（逸らす）', affection: 5, mp: -3, flash: '😊 微妙にかわした' },
-      ]},
+    { narration: '【タカシがスマホを向けてきた】', text: '${name}ちゃんのインスタ全部保存してるよ。火曜と金曜がシフトでしょ？', choices: [
+      { label: '「チェックしてくれてるの？嬉しい！」', affection: 12, mp: -8, flash: '😰 キモいけど好感度UP' },
+      { label: '「さすが情報通だね〜」', affection: 10, mp: -5, flash: '💕 くすぐった' },
+      { label: '「ちょっとそれ怖いかも」', affection: -12, mp: -3, flash: '😤 傷ついた！' },
+    ]},
+    { narration: '【タカシが声をひそめた】', text: 'ねえ${name}ちゃん……LINE教えてよ。俺、本気なんだよね……', choices: [
+      { label: '「ルールで交換できないの……ごめんね」', affection: -5, mp: -3, flash: '😔 しょんぼり' },
+      { label: '「ここで会えるだけで嬉しいですよ♡」', affection: 8, mp: -5, flash: '💕 うまい返し！' },
+      { label: '「お店のアカウント教えるね！」', affection: 15, mp: -8, flash: '💕💰 営業スキル！' },
+    ]},
+    { narration: '【タカシが早口で語り始めた】', text: 'これ知らない人多いんだけどさ、○○ってアイドルの初期メンバーって実は……', choices: [
+      { label: '「え！知らなかった！もっと教えて」', affection: 15, mp: -5, flash: '💕 ドヤ顔全開！' },
+      { label: '「タカシさん詳しいね〜尊敬する！」', affection: 12, mp: -3, flash: '💕 褒められて嬉しい' },
+      { label: '「あー、それ知ってるよ」（マウント返し）', affection: -15, mp: -3, flash: '😤 俺の方が詳しいのに！' },
+    ]},
+    { narration: '【タカシが真剣な目つきになった】', text: '${name}ちゃんは俺のこと、どう思ってるの？本当のところ。', choices: [
+      { label: '「タカシさんは私の一番の理解者だよ！」', affection: 15, mp: -10, flash: '💕 距離が縮まった' },
+      { label: '「みんな大切なお客さんだよ〜」', affection: -10, mp: -3, flash: '😤 聞きたい答えじゃない！' },
+      { label: '「推し愛には誰も勝てないよ！」', affection: 5, mp: -3, flash: '😊 微妙にかわした' },
+    ]},
+    { narration: '【タカシが他の客を睨んでいる】', text: '……あの客、${name}ちゃんに馴れ馴れしくない？俺見てたんだけど。', choices: [
+      { label: '「タカシさんが気にしてくれて嬉しい」', affection: 12, mp: -5, flash: '💕 守ってもらえてる感' },
+      { label: '「大丈夫！タカシさんが一番だから」', affection: 15, mp: -3, flash: '💕 特別扱いに弱い' },
+      { label: '「え、別に普通だったけど？」', affection: -8, mp: -3, flash: '😤 分かってくれない' },
+    ]},
+    { narration: '【タカシが計算を始めた】', text: '俺さ、この店に通い始めてからトータルで○○万使ってるんだよね。コスパ考えると……', choices: [
+      { label: '「タカシさんが来てくれるだけで嬉しいのに」', affection: 15, mp: -5, flash: '💕 お金じゃない…！' },
+      { label: '「それだけ楽しんでくれてるってことですよね」', affection: 10, mp: -3, flash: '💕 そう解釈してくれるのか' },
+      { label: '「もっと使ってくれてもいいんですよ？」', affection: -15, mp: -5, flash: '😤 やっぱり金か' },
+    ]},
   ],
   reiji: [
-    { trigger: { afterTurn: 1 }, narration: '【レイジの目つきが変わった】',
-      text: '……${name}。さっき入口であの男と目が合ってたよね。……あれ、誰。',
-      choices: [
-        { label: '「気づかなかった。レイジさんしか見てないよ」（全否定）', affection: 15, mp: -5, flash: '💕 独占欲が満たされた' },
-        { label: '「私のこと見てくれてるんだ？」（逆質問）', affection: 12, mp: -8, flash: '💕 駆け引き成功' },
-        { label: '「知り合いだよ〜」（軽く流す）', affection: -25, mp: -5, flash: '💀 地雷！', gameOver: true, gameOverReason: '「知り合い」……そう。もういいよ。帰る。' },
-      ]},
-    { trigger: { afterTurn: 3 }, narration: '【レイジがプレゼントの小箱を差し出した】',
-      text: '……これ。${name}が可愛いって言ってたやつ。……二人だけの秘密。',
-      choices: [
-        { label: '「二人だけの秘密、だね。大切にする」', affection: 20, mp: -8, flash: '💕💕 共依存レベルUP' },
-        { label: '「分かってくれてるの、レイジさんだけだよ」', affection: 18, mp: -10, flash: '💕 感情が深まった' },
-        { label: '「みんなに自慢しちゃお！」（軽いノリ）', affection: -30, mp: -5, flash: '💀 秘密を破った！', gameOver: true, gameOverReason: '秘密って言ったよね。……全部無駄だった。' },
-      ]},
-    { trigger: { afterTurn: 5 }, narration: '【レイジがまっすぐ見つめている】',
-      text: '……${name}は、この店辞めたらどうするの。俺が養うって言ったら……どうする？',
-      choices: [
-        { label: '「レイジさんがいてくれたら……考えちゃうかも」', affection: 20, mp: -12, flash: '💕💕 完全に沼' },
-        { label: '「今はここで会えるのが幸せだよ」', affection: 12, mp: -5, flash: '💕 うまくかわした' },
-        { label: '「冗談ですよね？笑」（茶化す）', affection: -30, mp: -5, flash: '💀 本気だったのに……', gameOver: true, gameOverReason: '冗談……？ そういうことか。' },
-      ]},
+    { narration: '【レイジの目つきが変わった】', text: '……${name}。さっき入口であの男と目が合ってたよね。……あれ、誰。', choices: [
+      { label: '「気づかなかった。レイジさんしか見てないよ」', affection: 15, mp: -5, flash: '💕 独占欲が満たされた' },
+      { label: '「私のこと見てくれてるんだ？」', affection: 12, mp: -8, flash: '💕 駆け引き成功' },
+      { label: '「知り合いだよ〜」', affection: -25, mp: -5, flash: '💀 地雷！', gameOver: true, gameOverReason: '「知り合い」……そう。もういいよ。帰る。' },
+    ]},
+    { narration: '【レイジがプレゼントの小箱を差し出した】', text: '……これ。${name}が可愛いって言ってたやつ。……二人だけの秘密。', choices: [
+      { label: '「二人だけの秘密、だね。大切にする」', affection: 20, mp: -8, flash: '💕💕 共依存レベルUP' },
+      { label: '「分かってくれてるの、レイジさんだけだよ」', affection: 18, mp: -10, flash: '💕 感情が深まった' },
+      { label: '「みんなに自慢しちゃお！」', affection: -30, mp: -5, flash: '💀 秘密を破った！', gameOver: true, gameOverReason: '秘密って言ったよね。……全部無駄だった。' },
+    ]},
+    { narration: '【レイジがまっすぐ見つめている】', text: '……${name}は、この店辞めたらどうするの。俺が養うって言ったら……どうする？', choices: [
+      { label: '「レイジさんがいてくれたら……考えちゃうかも」', affection: 20, mp: -12, flash: '💕💕 完全に沼' },
+      { label: '「今はここで会えるのが幸せだよ」', affection: 12, mp: -5, flash: '💕 うまくかわした' },
+      { label: '「冗談ですよね？笑」', affection: -30, mp: -5, flash: '💀 本気だったのに……', gameOver: true, gameOverReason: '冗談……？ そういうことか。' },
+    ]},
+    { narration: '【レイジがグラスを強く握った】', text: '……${name}、さっき笑ってたよね。あの客の話、そんなに面白かった？', choices: [
+      { label: '「笑ってたのはレイジさんのこと考えてたからだよ」', affection: 15, mp: -5, flash: '💕 嫉妬が和らいだ' },
+      { label: '「仕事だから……ごめんね」', affection: 5, mp: -8, flash: '💢 分かってるけど嫌だ' },
+      { label: '「えー、そんな見てたの？」', affection: -15, mp: -5, flash: '💢 軽く扱われた' },
+    ]},
+    { narration: '【レイジが急に黙った。沈黙が重い】', text: '…………。（何か言いたそうにしているが、言葉が出ない）', choices: [
+      { label: '「……待ってるよ。ゆっくりでいいから」（沈黙に寄り添う）', affection: 18, mp: -8, flash: '💕 沈黙を受け入れてくれた' },
+      { label: '「レイジさん……こっち向いて」', affection: 15, mp: -5, flash: '💕 名前を呼んでくれた' },
+      { label: '「どうしたの？何かあった？」（普通に聞く）', affection: 5, mp: -5, flash: '💢 そういうんじゃない' },
+    ]},
+    { narration: '【レイジのスマホが鳴った。見もせず切った】', text: '……誰からだと思う？ ……元カノ。まだ連絡してくるんだ。……${name}は、嫉妬しないの？', choices: [
+      { label: '「……正直、ちょっと嫌かも」', affection: 20, mp: -10, flash: '💕💕 嫉妬してくれた！' },
+      { label: '「レイジさんが選んでくれるなら大丈夫」', affection: 15, mp: -5, flash: '💕 信じてくれてる' },
+      { label: '「別に？レイジさんの自由でしょ」', affection: -20, mp: -5, flash: '💢 無関心が一番つらい', gameOver: true, gameOverReason: '無関心……それが一番きつい。もういい。' },
+    ]},
   ],
   merutaso: [
-    { trigger: { afterTurn: 1 }, narration: '【めるたそがスマホから目を上げた】',
-      text: '……ねえ、${name}ちゃんってさ、休みの日なにしてんの。……趣味とかある？',
-      choices: [
-        { label: '「めるたそは何が好きなの？聞きたい」（相手に興味を向ける）', affection: 15, mp: -3, flash: '💕 話が弾み始めた！' },
-        { label: '「映画とか音楽とか色々かな〜」（普通に答える）', affection: 5, mp: -3, flash: '🖤 ふーん……まあ普通' },
-        { label: '「私もコンカフェ通いが趣味！」（同業アピール）', affection: -5, mp: -5, flash: '🖤 ……それキャストが言う？' },
-      ]},
-    { trigger: { afterTurn: 3 }, narration: '【めるたそがスマホの画面を見せてきた】',
-      text: '見てこれ。推しのキャストくんの生誕祭で30万使ったの。……引く？',
-      choices: [
-        { label: '「30万分の想いが詰まってるんだね。素敵だなぁ」（共感する）', affection: 18, mp: -3, flash: '💕💕 ちゃんと分かってくれた！' },
-        { label: '「すごっ！推しへの愛じゃん。どんなイベントだったの？」（興味を持つ）', affection: 15, mp: -5, flash: '💕 聞いてくれるの嬉しい' },
-        { label: '「30万は使いすぎじゃない？笑」（ツッコむ）', affection: -20, mp: -8, flash: '💀 こだわりを否定した！', gameOver: true, gameOverReason: 'は？ 人の推し事にケチつけるとか最悪なんだけど。帰る。' },
-      ]},
-    { trigger: { afterTurn: 5 }, narration: '【めるたそが急にスマホを置いた。真剣な目】',
-      text: '……${name}ちゃんってさ、私のことどう思ってる？ ……営業でしょ、どうせ。みんなそう。',
-      choices: [
-        { label: '「営業じゃないよ。めるたそと話すの楽しい」（真剣に返す）', affection: 20, mp: -5, flash: '💕💕 心に刺さった……' },
-        { label: '「そんなこと言わないで。今日来てくれて嬉しいよ」（寄り添う）', affection: 15, mp: -3, flash: '💕 少し心を開いた' },
-        { label: '「まあ仕事だからね〜」（正直に言う）', affection: -25, mp: -8, flash: '💀 やっぱりね。', gameOver: true, gameOverReason: '……知ってた。もういい。全部嘘じゃん。' },
-      ]},
+    { narration: '【めるたそがスマホから目を上げた】', text: '……ねえ、${name}ちゃんってさ、休みの日なにしてんの。……趣味とかある？', choices: [
+      { label: '「めるたそは何が好きなの？聞きたい」', affection: 15, mp: -3, flash: '💕 話が弾み始めた！' },
+      { label: '「映画とか音楽とか色々かな〜」', affection: 5, mp: -3, flash: '🖤 ふーん……まあ普通' },
+      { label: '「私もコンカフェ通いが趣味！」', affection: -5, mp: -5, flash: '🖤 ……それキャストが言う？' },
+    ]},
+    { narration: '【めるたそがスマホの画面を見せてきた】', text: '見てこれ。推しのキャストくんの生誕祭で30万使ったの。……引く？', choices: [
+      { label: '「30万分の想いが詰まってるんだね。素敵だなぁ」', affection: 18, mp: -3, flash: '💕💕 ちゃんと分かってくれた！' },
+      { label: '「どんなイベントだったの？」', affection: 15, mp: -5, flash: '💕 聞いてくれるの嬉しい' },
+      { label: '「30万は使いすぎじゃない？笑」', affection: -20, mp: -8, flash: '💀 こだわりを否定した！', gameOver: true, gameOverReason: 'は？ 人の推し事にケチつけるとか最悪なんだけど。帰る。' },
+    ]},
+    { narration: '【めるたそが急にスマホを置いた。真剣な目】', text: '……${name}ちゃんってさ、私のことどう思ってる？ ……営業でしょ、どうせ。みんなそう。', choices: [
+      { label: '「営業じゃないよ。めるたそと話すの楽しい」', affection: 20, mp: -5, flash: '💕💕 心に刺さった……' },
+      { label: '「今日来てくれて嬉しいよ」', affection: 15, mp: -3, flash: '💕 少し心を開いた' },
+      { label: '「まあ仕事だからね〜」', affection: -25, mp: -8, flash: '💀 やっぱりね。', gameOver: true, gameOverReason: '……知ってた。もういい。全部嘘じゃん。' },
+    ]},
+    { narration: '【めるたそがネイルを見せてきた】', text: '……見て。今日変えたの。この色、推しのイメカラなんだよね。……かわいくない？', choices: [
+      { label: '「めっちゃかわいい！色のセンスいいね」', affection: 15, mp: -3, flash: '💕 分かってくれる子だ' },
+      { label: '「推しへの愛が詰まってるんだね」', affection: 18, mp: -3, flash: '💕💕 共感してくれた！' },
+      { label: '「ネイルとかよく分かんないけど」', affection: -10, mp: -3, flash: '🖤 興味ないのね……' },
+    ]},
+    { narration: '【めるたそが急に不安そうな顔をした】', text: '……ねえ、${name}ちゃんってさ、他のお客さんにも同じこと言ってるの？', choices: [
+      { label: '「めるたそだから話してるんだよ」（真剣に）', affection: 20, mp: -5, flash: '💕💕 特別感……' },
+      { label: '「そんなこと考えてたんだ。ごめんね」（寄り添う）', affection: 15, mp: -3, flash: '💕 気持ちを受け止めた' },
+      { label: '「みんなに平等にしてるよ！」', affection: -12, mp: -5, flash: '🖤 平等とか聞きたくない' },
+    ]},
+    { narration: '【めるたそがSNSの画面を見せてきた】', text: 'ねえこれ見て。昨日あげたストーリー、200人も見てるの。……でも見てほしい人は見てくれなかった。', choices: [
+      { label: '「見てほしい人って……推しのこと？」（踏み込む）', affection: 18, mp: -5, flash: '💕 分かってくれるの嬉しい' },
+      { label: '「200人も！すごいじゃん」（数字を褒める）', affection: 3, mp: -3, flash: '🖤 そういうことじゃない' },
+      { label: '「SNS気にしすぎじゃない？」', affection: -15, mp: -5, flash: '💀 否定された', gameOver: true, gameOverReason: 'は？ 私の生き方否定すんの？帰る。' },
+    ]},
   ],
 };
+
+// ランダムで3つ選出してターンに割り当て
+function generateScriptedEvents(charId) {
+  const all = ALL_EVENTS[charId] || [];
+  const shuffled = [...all].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, 3);
+  return selected.map((ev, i) => ({ ...ev, trigger: { afterTurn: [1, 3, 5][i] } }));
+}
+
+// 店長イベント
+ALL_EVENTS.tenchou = [
+  { narration: '【うみがメニューを閉じた】', text: 'ねぇ、私に営業トーク使わないでくれる？全部分かるから。……本音で話して。', choices: [
+    { label: '「……正直、店長相手は緊張します」（素直に言う）', affection: 18, mp: -5, flash: '💕 素直ね。いいわよ' },
+    { label: '「うみさんに楽しんでもらいたいです♡」（営業）', affection: -5, mp: -8, flash: '👁️ はい、営業。0点' },
+    { label: '「じゃあ何話せばいいんですか」（開き直り）', affection: 10, mp: -3, flash: '💕 あら、度胸あるじゃない' },
+  ]},
+  { narration: '【うみが少し寂しそうな顔をした】', text: '……ねえ、${name}ちゃんはこの仕事、好き？……私はね、好きだったよ。でも最近……', choices: [
+    { label: '「うみさんが作ったこの店が好きです」（本音で返す）', affection: 20, mp: -5, flash: '💕💕 ……ありがとう' },
+    { label: '「店長はキャスト時代すごかったって聞きました」', affection: 12, mp: -3, flash: '💕 昔の話ね……' },
+    { label: '「まあ仕事ですからね」（つい本音が）', affection: -15, mp: -5, flash: '😤 ……そう。残念ね' },
+  ]},
+  { narration: '【うみが真剣な眼差しを向けてきた】', text: '${name}ちゃん。あなた、この先もキャスト続ける？それとも……いつか辞めるの？', choices: [
+    { label: '「今はここで頑張りたいです。うみさんみたいになりたい」', affection: 20, mp: -8, flash: '💕💕 ……泣きそう' },
+    { label: '「正直、分からないです」（素直に答える）', affection: 15, mp: -3, flash: '💕 正直でいいわ' },
+    { label: '「辞めるつもりないですよ〜」（軽く流す）', affection: -10, mp: -5, flash: '😤 軽いわね' },
+  ]},
+  { narration: '【うみが急にグラスを持ち上げた】', text: '……乾杯しましょ。今日は店長じゃなくて、ただの「うみ」として。', choices: [
+    { label: '「うみさん、乾杯」（名前で呼ぶ）', affection: 20, mp: -3, flash: '💕💕 名前で呼んでくれた……' },
+    { label: '「店長、乾杯です！」（肩書きで呼ぶ）', affection: 5, mp: -3, flash: '😔 ……店長、か' },
+    { label: '「あ、はい乾杯〜」（軽い）', affection: -5, mp: -3, flash: '😤 もう少し丁寧に……' },
+  ]},
+];
+
+let SCRIPTED_EVENTS = {};
 
 // ===== キャラ固有メカニクス =====
 const CHAR_MECHANICS = {
@@ -333,6 +424,15 @@ const CHAR_MECHANICS = {
       { at: 1, label: 'チラ見', effect: '少し反応するように' },
       { at: 2, label: '顔上げた', effect: '会話が成立し始める' },
       { at: 3, label: 'のめり込み', effect: 'スマホを置いた！好感度UP加速' },
+    ],
+  },
+  tenchou: {
+    name: '見抜き', emoji: '👁️', max: 100, perTurn: 0, color: '#ffd700', hidden: true,
+    levels: [
+      { at: 0, label: '品定め中', effect: '全てを見ている' },
+      { at: 30, label: '少し認めた', effect: '態度が柔らかく' },
+      { at: 60, label: '心を許した', effect: '「うみ」と呼んでいい' },
+      { at: 85, label: '本気', effect: '元No.1の本音が出る' },
     ],
   },
 };
@@ -562,12 +662,25 @@ function setDifficulty(diff) {
 function startSelectedGame() {
   if (!selectedCharacterId) return;
   naikinGiftClaimed = false;
+
+  // 周回カウント
+  const visitNum = incrementVisit(selectedCharacterId);
+
+  // スクリプトイベントをランダム生成
+  SCRIPTED_EVENTS[selectedCharacterId] = generateScriptedEvents(selectedCharacterId);
+
   gameState = {
     characterId: selectedCharacterId, affection: 0, mp: 100, turns: 0, phase: 0,
     messages: [], firedEvents: [], mpShieldTurns: 0, affBoostTurns: 0, isLoading: false,
-    mechanic: 0, backstoryRevealed: [],
+    mechanic: 0, backstoryRevealed: [], visitCount: visitNum,
   };
   const char = CHARACTERS[selectedCharacterId];
+
+  // 常連ボーナス表示
+  if (visitNum > 1) {
+    showFlash(`🔄 ${visitNum}回目の来店！常連ボーナス：好感度+${Math.min(visitNum * 2, 10)}`);
+    gameState.affection = Math.min(visitNum * 2, 10);
+  }
   document.getElementById('adv-situation').textContent = char.situation;
   document.getElementById('textbox-name-tag').textContent = `${char.name}（${char.age}）`;
   document.getElementById('textbox-text').textContent = '……';
@@ -697,6 +810,7 @@ function checkBottleThreshold() {
   else if (id === 'takashi') { if (aff >= 100) return 'S'; if (aff >= 80) return '梅'; }
   else if (id === 'reiji') { if (aff >= 100) return 'S'; if (aff >= 80) return '松'; if (aff >= 65) return '竹'; }
   else if (id === 'merutaso') { if (aff >= 100) return 'S'; if (aff >= 90) return '松'; if (aff >= 75) return '竹'; if (aff >= 60) return '梅'; }
+  else if (id === 'tenchou') { if (aff >= 100) return 'S'; if (aff >= 90) return '松'; if (aff >= 75) return '竹'; }
   return null;
 }
 
@@ -846,7 +960,8 @@ async function sendMessage() {
         affection: gameState.affection, mp: gameState.mp, turns: gameState.turns,
         playerName, phase: gameState.phase,
         timeRemaining: (d.maxTurns - gameState.turns) * d.minutesPerTurn,
-        mechanicText: getMechanicPromptText() })
+        mechanicText: getMechanicPromptText(),
+        visitCount: gameState.visitCount || 1 })
     });
     const data = await res.json();
     showLoading(false);
@@ -1019,13 +1134,31 @@ function markCleared(cid, rank) {
   if (!h[cid] || (ro[rank] || 0) > (ro[h[cid]] || 0)) h[cid] = rank;
   saveClearHistory(h);
 }
+function isBossUnlocked() {
+  const h = loadClearHistory();
+  const required = ['masao', 'takashi', 'reiji', 'merutaso'];
+  return required.every(id => h[id]);
+}
+
 function updateClearBadges() {
   const h = loadClearHistory();
   Object.keys(CHARACTERS).forEach(id => {
+    if (id === 'tenchou') return; // 裏ボスは別処理
     const b = document.getElementById(`clear-badge-${id}`); if (!b) return;
     if (h[id]) { b.textContent = `攻略済 ${{ '梅': '🥂', '竹': '🍾', '松': '👑', 'S': '👼' }[h[id]] || '✓'}`; b.className = 'clear-badge badge-cleared'; }
     else { b.textContent = '未攻略'; b.className = 'clear-badge badge-uncleared'; }
   });
+
+  // 裏ボス解放チェック
+  const bossCard = document.getElementById('boss-card');
+  if (bossCard) {
+    if (isBossUnlocked()) {
+      bossCard.style.display = '';
+      bossCard.classList.add('boss-unlocked-anim');
+    } else {
+      bossCard.style.display = 'none';
+    }
+  }
 }
 
 // ===== エンディング（シャンパンコール演出） =====

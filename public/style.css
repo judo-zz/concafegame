@@ -381,6 +381,21 @@ body {
 .card-ribbon.hard { background: var(--lavender); }
 .card-ribbon.hell { background: var(--rose); }
 .card-ribbon.new { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.card-ribbon.boss { background: linear-gradient(135deg, #ffd700, #ff6b6b); color: #1a0f1e; }
+
+.boss-card {
+  border: 2px solid rgba(255, 215, 0, 0.5) !important;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2) !important;
+}
+.boss-card:hover { border-color: #ffd700 !important; box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3) !important; }
+.boss-bg { background: linear-gradient(135deg, #ffd700, #ff6b6b) !important; }
+
+@keyframes bossUnlock {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.boss-unlocked-anim { animation: bossUnlock 0.8s ease; }
 
 .card-avatar {
   width: 78px; height: 78px;
