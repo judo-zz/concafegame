@@ -22,8 +22,13 @@
       <div class="deco-circle c3"></div>
     </div>
     <div class="title-content">
-      <div class="title-logo">🍾✨</div>
-      <h1 class="title-text">コンカフェ<br><span class="title-sub">★ メンタルウォーズ ★</span></h1>
+      <div class="title-logo-img-wrap">
+        <img src="images/title_logo.png" alt="コンカフェ★メンタルウォーズ" class="title-logo-img" onerror="this.style.display='none';document.getElementById('title-fallback').style.display='block'">
+      </div>
+      <div id="title-fallback" style="display:none">
+        <div class="title-logo">🍾✨</div>
+        <h1 class="title-text">コンカフェ<br><span class="title-sub">★ メンタルウォーズ ★</span></h1>
+      </div>
       <p class="title-desc">おじさんをトーク力で落として<br>ボトルを開けさせろ！</p>
       <div class="name-input-wrap">
         <label class="name-label" for="player-name-input">あなたの源氏名</label>
@@ -92,6 +97,19 @@
           </div>
         </div>
 
+        <div class="character-card" role="button" tabindex="0" onclick="confirmCharacter('merutaso')" onkeydown="if(event.key==='Enter')confirmCharacter('merutaso')">
+          <div id="clear-badge-merutaso" class="clear-badge badge-uncleared">未攻略</div>
+          <div class="card-ribbon new">NEW</div>
+          <div class="card-avatar merutaso-bg">🖤</div>
+          <div class="card-name">めるたそ <span class="card-age">23歳</span></div>
+          <div class="card-type">地雷系メンヘラ女子</div>
+          <div class="card-quote">「……（スマホいじいじ）<br>……え？なに？」</div>
+          <div class="card-footer">
+            <span class="tag-money">💰💰💰</span>
+            <span class="tag-warn">📱 無視されるかも</span>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -151,6 +169,9 @@
           </div>
         </div>
       </div>
+
+      <!-- 固有メカニクス表示 -->
+      <div id="mechanic-display" class="mechanic-display" style="display:none"></div>
 
       <!-- ローディング表示 -->
       <div id="loading-indicator" class="loading-indicator" style="display:none">
@@ -212,6 +233,8 @@
           <div id="manager-feedback" class="manager-feedback"></div>
         </div>
         <div class="ending-actions">
+          <button type="button" class="btn-secondary" onclick="openFullLog()">📜 今回の会話ログ</button>
+          <button type="button" class="btn-secondary" onclick="saveResultImage()">📸 結果を画像で保存</button>
           <button type="button" class="btn-secondary" id="btn-naikin" onclick="getNaikinGift()">📦 内勤さんからボーナスpt</button>
           <button type="button" class="btn-secondary" onclick="openShop()">🛒 ショップでアイテム購入</button>
           <button type="button" class="btn-primary" onclick="showScreen('character-select')">もう一度プレイ 🔄</button>
@@ -228,6 +251,7 @@
         <h2 class="gameover-title">GAME OVER</h2>
         <p id="gameover-reason" class="gameover-reason"></p>
         <p class="gameover-sub">心が折れてしまった……</p>
+        <button type="button" class="btn-secondary" onclick="openFullLog()">📜 会話ログを見る</button>
         <button type="button" class="btn-primary" onclick="showScreen('character-select')">もう一度挑戦 💪</button>
       </div>
     </div>
@@ -276,6 +300,7 @@
     <div id="event-flash-text" class="event-flash-text"></div>
   </div>
 
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

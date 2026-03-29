@@ -148,12 +148,23 @@ const CHARACTERS = {
     situation: '今日の機嫌……不明 😶',
     greeting: (name) => `……来たよ。（静かにグラスを持つ）　……${name}、今日、他の客と話してたね`,
     hints: ['「あなただけ」が最強ワード', '他の客の話は絶対するな！', '束縛を肯定すると喜ぶ'],
+  },
+  merutaso: {
+    name: 'めるたそ', age: 23, avatar: '🖤',
+    avatarBg: 'linear-gradient(135deg, #2d1f3d, #1a1025)',
+    type: '地雷系メンヘラ女子',
+    detail: `💰 報酬：竹〜松（ハマれば太客化）\n💀 危険：興味を持たれないと即スマホ\n✦ 攻略：こだわりを理解して「特別」になれ`,
+    situation: 'スマホいじりながら来店 📱🖤',
+    greeting: (name) => `……（スマホをいじりながらチラッと見る）　……あ、${name}ちゃんか。……ん、別に。`,
+    hints: ['最初は塩対応。めげるな', 'コンカフェやブランドの話題が刺さる', '共感が大事。否定は絶対NG'],
   }
 };
 
 const BOTTLE_POOL = {
+  S: [
+    { emoji: '👼✨🍾✨', name: 'エンジェル', price: '100,000円+' },
+  ],
   松: [
-    { emoji: '👼🍾', name: 'エンジェル', price: '100,000円+' },
     { emoji: '♠️🍾', name: 'アルマンド', price: '120,000円+' },
     { emoji: '🥂✨', name: 'ドンペリ', price: '80,000円+' },
     { emoji: '💎🍾', name: 'フィリコ（ノンアル）', price: '50,000円+' },
@@ -168,7 +179,7 @@ const BOTTLE_POOL = {
     { emoji: '🫧🥂', name: 'アスティ', price: '8,000円' },
   ],
 };
-const RANK_SCORE = { 松: 10000, 竹: 3000, 梅: 1000 };
+const RANK_SCORE = { S: 30000, 松: 10000, 竹: 3000, 梅: 1000 };
 
 function pickBottle(rank) {
   const pool = BOTTLE_POOL[rank];
@@ -261,6 +272,89 @@ const SCRIPTED_EVENTS = {
         { label: '「冗談ですよね？笑」（茶化す）', affection: -30, mp: -5, flash: '💀 本気だったのに……', gameOver: true, gameOverReason: '冗談……？ そういうことか。' },
       ]},
   ],
+  merutaso: [
+    { trigger: { afterTurn: 1 }, narration: '【めるたそがスマホから目を上げた】',
+      text: '……ねえ、${name}ちゃんってさ、休みの日なにしてんの。……趣味とかある？',
+      choices: [
+        { label: '「めるたそは何が好きなの？聞きたい」（相手に興味を向ける）', affection: 15, mp: -3, flash: '💕 話が弾み始めた！' },
+        { label: '「映画とか音楽とか色々かな〜」（普通に答える）', affection: 5, mp: -3, flash: '🖤 ふーん……まあ普通' },
+        { label: '「私もコンカフェ通いが趣味！」（同業アピール）', affection: -5, mp: -5, flash: '🖤 ……それキャストが言う？' },
+      ]},
+    { trigger: { afterTurn: 3 }, narration: '【めるたそがスマホの画面を見せてきた】',
+      text: '見てこれ。推しのキャストくんの生誕祭で30万使ったの。……引く？',
+      choices: [
+        { label: '「30万分の想いが詰まってるんだね。素敵だなぁ」（共感する）', affection: 18, mp: -3, flash: '💕💕 ちゃんと分かってくれた！' },
+        { label: '「すごっ！推しへの愛じゃん。どんなイベントだったの？」（興味を持つ）', affection: 15, mp: -5, flash: '💕 聞いてくれるの嬉しい' },
+        { label: '「30万は使いすぎじゃない？笑」（ツッコむ）', affection: -20, mp: -8, flash: '💀 こだわりを否定した！', gameOver: true, gameOverReason: 'は？ 人の推し事にケチつけるとか最悪なんだけど。帰る。' },
+      ]},
+    { trigger: { afterTurn: 5 }, narration: '【めるたそが急にスマホを置いた。真剣な目】',
+      text: '……${name}ちゃんってさ、私のことどう思ってる？ ……営業でしょ、どうせ。みんなそう。',
+      choices: [
+        { label: '「営業じゃないよ。めるたそと話すの楽しい」（真剣に返す）', affection: 20, mp: -5, flash: '💕💕 心に刺さった……' },
+        { label: '「そんなこと言わないで。今日来てくれて嬉しいよ」（寄り添う）', affection: 15, mp: -3, flash: '💕 少し心を開いた' },
+        { label: '「まあ仕事だからね〜」（正直に言う）', affection: -25, mp: -8, flash: '💀 やっぱりね。', gameOver: true, gameOverReason: '……知ってた。もういい。全部嘘じゃん。' },
+      ]},
+  ],
+};
+
+// ===== キャラ固有メカニクス =====
+const CHAR_MECHANICS = {
+  masao: {
+    name: '酔い', emoji: '🍺', max: 100, perTurn: 12, color: '#ff9944',
+    levels: [
+      { at: 0,  label: 'シラフ', effect: 'セクハラ控えめ' },
+      { at: 30, label: 'ほろ酔い', effect: '距離が近くなる' },
+      { at: 60, label: '酔っ払い', effect: 'セクハラ加速・財布が緩む' },
+      { at: 85, label: '泥酔', effect: '暴走注意！介抱で好感度UP' },
+    ],
+  },
+  takashi: {
+    name: 'マウント', emoji: '📊', max: 10, perTurn: 0, color: '#66bb6a',
+    levels: [
+      { at: 0, label: '平常', effect: '普通の会話' },
+      { at: 3, label: 'イキリ', effect: '知識自慢が加速' },
+      { at: 6, label: 'フルマウント', effect: '勝つと逆に好感度DOWN' },
+      { at: 9, label: '暴走', effect: '何を言っても聞かない' },
+    ],
+  },
+  reiji: {
+    name: '嫉妬', emoji: '💢', max: 100, perTurn: 5, color: '#e05080', hidden: true,
+    levels: [
+      { at: 0,  label: '平穏', effect: '静かに見つめている' },
+      { at: 30, label: '疑念', effect: '確認の質問が増える' },
+      { at: 60, label: '嫉妬', effect: '圧が強くなる' },
+      { at: 85, label: '暴発寸前', effect: '一言で即ゲームオーバー' },
+    ],
+  },
+  merutaso: {
+    name: '興味', emoji: '📱', max: 4, perTurn: 0, color: '#9b59b6',
+    levels: [
+      { at: 0, label: 'スマホいじり', effect: '何を言っても「ふーん」' },
+      { at: 1, label: 'チラ見', effect: '少し反応するように' },
+      { at: 2, label: '顔上げた', effect: '会話が成立し始める' },
+      { at: 3, label: 'のめり込み', effect: 'スマホを置いた！好感度UP加速' },
+    ],
+  },
+};
+
+// ===== 裏設定（本音フラグメント） =====
+const BACKSTORY_FRAGMENTS = {
+  masao: [
+    { affectionMin: 40, keyword: '家族|嫁|奥さん|家庭', fragment: '……実はさ、家に帰っても誰も「おかえり」って言ってくれないんだよね。ここだけなんだ、俺の居場所。' },
+    { affectionMin: 70, keyword: '本当|本音|寂しい', fragment: '……はは、${name}ちゃんにこんな話するの初めてだよ。会社でも家でも「マサオさん」って距離置かれてさ。……ここにいる時だけ、俺は俺でいられるんだ。' },
+  ],
+  takashi: [
+    { affectionMin: 40, keyword: '推し|裏切|辞め', fragment: '……実はさ、前に推してた子がいきなり辞めちゃってさ。何も言わずに。3年通ったのに。……だから「本気」の関係がほしいんだよね。' },
+    { affectionMin: 70, keyword: '本当|信じ|大切', fragment: '……${name}ちゃんは辞めないでよ。頼むから。俺、もう一回あんな思いしたくないんだ……。' },
+  ],
+  reiji: [
+    { affectionMin: 40, keyword: '前|過去|金|使', fragment: '……前にいた店でさ。キャストに500万使った。「愛してる」って言われて信じた。……全部営業だった。' },
+    { affectionMin: 70, keyword: '信じ|本当|嘘', fragment: '……だから怖いんだ。${name}の言葉も……嘘かもしれないって。でも信じたい。……信じさせてくれ。' },
+  ],
+  merutaso: [
+    { affectionMin: 40, keyword: 'キャスト|仕事|なんで客', fragment: '……実はね、私も前はキャスト側だったの。でもさ、笑顔作るの疲れちゃって。……客の方が楽かなって。' },
+    { affectionMin: 70, keyword: '本当|やめた理由|辛', fragment: '……あの頃さ、毎日泣いてた。お客さんに「お前の代わりなんていくらでもいる」って言われて。……だから${name}ちゃんみたいに優しい子見ると……なんか、泣きそうになる。' },
+  ],
 };
 
 // ===== ゲーム状態 =====
@@ -270,7 +364,8 @@ let typewriterTimer = null;
 let naikinGiftClaimed = false;
 let gameState = {
   characterId: null, affection: 0, mp: 100, turns: 0, phase: 0,
-  messages: [], firedEvents: [], mpShieldTurns: 0, affBoostTurns: 0, isLoading: false
+  messages: [], firedEvents: [], mpShieldTurns: 0, affBoostTurns: 0, isLoading: false,
+  mechanic: 0, backstoryRevealed: [],
 };
 
 // ===== 時間表示 =====
@@ -310,6 +405,124 @@ function openBacklog() {
   list.scrollTop = list.scrollHeight;
 }
 function closeBacklog() { document.getElementById('backlog-overlay').classList.add('hidden'); }
+
+// エンディング/ゲームオーバーから全ログを見る（openBacklogと同じだがどの画面からでも呼べる）
+function openFullLog() {
+  openBacklog();
+}
+
+// ===== 結果画像保存 =====
+function saveResultImage() {
+  const char = CHARACTERS[gameState.characterId];
+  const canvas = document.createElement('canvas');
+  const w = 600, h = 800;
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  // 背景
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, '#1a0f1e');
+  grad.addColorStop(0.5, '#2d1528');
+  grad.addColorStop(1, '#1a0f1e');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // 枠線
+  ctx.strokeStyle = 'rgba(200,150,180,0.3)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(20, 20, w - 40, h - 40);
+
+  // タイトル
+  ctx.fillStyle = '#f2b8cb';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('コンカフェ★メンタルウォーズ', w / 2, 70);
+
+  // ランク
+  const rankText = document.getElementById('ending-title')?.textContent || '';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 24px sans-serif';
+  ctx.fillText(rankText, w / 2, 120);
+
+  // ボトル
+  const bottleText = document.getElementById('ending-bottle-display')?.textContent || '';
+  ctx.fillStyle = '#f0deb8';
+  ctx.font = '18px sans-serif';
+  ctx.fillText(bottleText, w / 2, 160);
+
+  // キャラ名
+  ctx.fillStyle = '#f2b8cb';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText(`vs ${char.name}（${char.age}）`, w / 2, 210);
+
+  // スコア
+  const scoreText = document.getElementById('ending-score')?.textContent || '';
+  ctx.fillStyle = '#c9a86c';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText(scoreText, w / 2, 250);
+
+  // 区切り線
+  ctx.strokeStyle = 'rgba(200,150,180,0.2)';
+  ctx.beginPath();
+  ctx.moveTo(40, 275);
+  ctx.lineTo(w - 40, 275);
+  ctx.stroke();
+
+  // 会話ログ（最大15行）
+  ctx.fillStyle = 'rgba(255,245,250,0.9)';
+  ctx.font = '13px sans-serif';
+  ctx.textAlign = 'left';
+  let y = 305;
+  const maxLines = 15;
+  const msgs = gameState.messages.slice(-maxLines * 2);
+  msgs.forEach(m => {
+    if (y > h - 80) return;
+    const name = m.role === 'user' ? `🎀 ${playerName}` : `${char.avatar} ${char.name}`;
+    const line = `${name}: ${m.content.slice(0, 40)}${m.content.length > 40 ? '…' : ''}`;
+    ctx.fillStyle = m.role === 'user' ? 'rgba(255,180,210,0.9)' : 'rgba(200,200,240,0.9)';
+    ctx.fillText(line, 40, y);
+    y += 22;
+  });
+
+  // フッター
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`v${GAME_VERSION} | concafe-mental-wars.fly.dev`, w / 2, h - 35);
+
+  // 保存（スマホ対応: Web Share API → フォールバックでBlobダウンロード）
+  canvas.toBlob(async (blob) => {
+    if (!blob) { showFlash('❌ 画像生成に失敗しました'); return; }
+
+    const fileName = `concafe_result_${char.name}_${Date.now()}.png`;
+
+    // Web Share APIが使えればシェアシートを開く（スマホ向け）
+    if (navigator.share && navigator.canShare) {
+      try {
+        const file = new File([blob], fileName, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'コンカフェ★メンタルウォーズ 結果' });
+          showFlash('📸 シェアしました！');
+          return;
+        }
+      } catch (e) {
+        if (e.name === 'AbortError') return; // ユーザーがキャンセル
+      }
+    }
+
+    // フォールバック: Blobダウンロード
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showFlash('📸 画像を保存しました！');
+  }, 'image/png');
+}
 
 // ===== ヒント（低難易度のみ） =====
 function showHint() {
@@ -351,7 +564,8 @@ function startSelectedGame() {
   naikinGiftClaimed = false;
   gameState = {
     characterId: selectedCharacterId, affection: 0, mp: 100, turns: 0, phase: 0,
-    messages: [], firedEvents: [], mpShieldTurns: 0, affBoostTurns: 0, isLoading: false
+    messages: [], firedEvents: [], mpShieldTurns: 0, affBoostTurns: 0, isLoading: false,
+    mechanic: 0, backstoryRevealed: [],
   };
   const char = CHARACTERS[selectedCharacterId];
   document.getElementById('adv-situation').textContent = char.situation;
@@ -374,6 +588,7 @@ function startSelectedGame() {
   hideChoices();
   showInput();
   updateGauges();
+  updateMechanicUI();
   updateItemUI();
   updateTimeDisplay();
   showScreen('game');
@@ -393,6 +608,23 @@ function displayCharText(text) {
     if (i >= text.length) { clearInterval(typewriterTimer); typewriterTimer = null; return; }
     el.textContent += text[i]; i++;
   }, 28);
+}
+
+// ===== チャンスイベント演出 =====
+function showChanceEvent(event) {
+  // チャンスイベント！のカットイン
+  const callEl = document.getElementById('champagne-call');
+  if (callEl) {
+    callEl.innerHTML = '<div class="call-text chance-call">⚡ CHANCE EVENT ⚡</div>';
+    callEl.classList.remove('hidden');
+    playSE('good');
+    setTimeout(() => {
+      callEl.classList.add('hidden');
+      fireScriptedEvent(event);
+    }, 1500);
+  } else {
+    fireScriptedEvent(event);
+  }
 }
 
 // ===== スクリプトイベント =====
@@ -461,9 +693,10 @@ function handleChoice(choice) {
 
 function checkBottleThreshold() {
   const id = gameState.characterId, aff = gameState.affection;
-  if (id === 'masao') { if (aff >= 95) return '松'; if (aff >= 85) return '竹'; if (aff >= 75) return '梅'; }
-  else if (id === 'takashi') { if (aff >= 80) return '梅'; }
-  else if (id === 'reiji') { if (aff >= 80) return '松'; if (aff >= 65) return '竹'; }
+  if (id === 'masao') { if (aff >= 100) return 'S'; if (aff >= 95) return '松'; if (aff >= 85) return '竹'; if (aff >= 75) return '梅'; }
+  else if (id === 'takashi') { if (aff >= 100) return 'S'; if (aff >= 80) return '梅'; }
+  else if (id === 'reiji') { if (aff >= 100) return 'S'; if (aff >= 80) return '松'; if (aff >= 65) return '竹'; }
+  else if (id === 'merutaso') { if (aff >= 100) return 'S'; if (aff >= 90) return '松'; if (aff >= 75) return '竹'; if (aff >= 60) return '梅'; }
   return null;
 }
 
@@ -536,7 +769,7 @@ function updateItemUI() {
   });
 }
 
-const RANK_POINTS = { '松': 1000, '竹': 500, '梅': 200 };
+const RANK_POINTS = { 'S': 3000, '松': 1000, '竹': 500, '梅': 200 };
 function grantClearReward(rank) { const p = RANK_POINTS[rank] || 100; const c = loadPoints(); savePoints(c + p); return p; }
 
 function getNaikinGift() {
@@ -589,6 +822,19 @@ async function sendMessage() {
 
   await new Promise(r => setTimeout(r, 600));
   const char = CHARACTERS[gameState.characterId];
+
+  // スクリプトイベントがあればAI返答をスキップしてイベントへ
+  const ev = checkScriptedEvent();
+  if (ev) {
+    gameState.turns++;
+    if (gameState.turns >= 6) gameState.phase = 2;
+    else if (gameState.turns >= 3) gameState.phase = 1;
+    updateTimeDisplay();
+    resetSendButton();
+    showChanceEvent(ev);
+    return;
+  }
+
   document.getElementById('textbox-name-tag').textContent = `${char.name}（${char.age}）`;
   showLoading(true);
 
@@ -599,19 +845,44 @@ async function sendMessage() {
       body: JSON.stringify({ characterId: gameState.characterId, messages: gameState.messages,
         affection: gameState.affection, mp: gameState.mp, turns: gameState.turns,
         playerName, phase: gameState.phase,
-        timeRemaining: (d.maxTurns - gameState.turns) * d.minutesPerTurn })
+        timeRemaining: (d.maxTurns - gameState.turns) * d.minutesPerTurn,
+        mechanicText: getMechanicPromptText() })
     });
     const data = await res.json();
     showLoading(false);
-    displayCharText(data.message);
-    gameState.messages.push({ role: 'assistant', content: data.message });
+
+    // 裏設定チェック（AIの返答の前に、プレイヤーの発言でトリガー）
+    const backstory = checkBackstory(text);
+    if (backstory) {
+      // 裏設定が明かされる場合、AIの返答の後に追加表示
+      displayCharText(data.message);
+      gameState.messages.push({ role: 'assistant', content: data.message });
+      await new Promise(r => setTimeout(r, 2000));
+      displayCharText(backstory);
+      gameState.messages.push({ role: 'assistant', content: `[本音] ${backstory}` });
+      showFlash('💭 本音が漏れた……');
+      playSE('good');
+    } else {
+      displayCharText(data.message);
+      gameState.messages.push({ role: 'assistant', content: data.message });
+    }
+
     gameState.turns++;
+    tickMechanic(); // 固有メカニクス進行
 
     if (gameState.mpShieldTurns > 0) gameState.mpShieldTurns--;
     if (gameState.affBoostTurns > 0) gameState.affBoostTurns--;
 
     let affDelta = data.affection_delta || 0;
     let mpDelta = data.mp_delta || 0;
+
+    // メカニクスによる補正
+    const mechInfo = getMechanicInfo();
+    if (mechInfo) {
+      if (gameState.characterId === 'masao' && gameState.mechanic >= 60) affDelta = Math.round(affDelta * 1.3);
+      if (gameState.characterId === 'merutaso' && gameState.mechanic >= 3) affDelta = Math.round(affDelta * 1.5);
+    }
+
     if (affDelta > 0 && gameState.affBoostTurns > 0) affDelta *= 2;
     if (mpDelta < 0) mpDelta = Math.round(mpDelta * d.mpMult);
     if (mpDelta < 0 && gameState.mpShieldTurns > 0) mpDelta = Math.round(mpDelta / 2);
@@ -619,6 +890,7 @@ async function sendMessage() {
     gameState.affection = Math.max(0, Math.min(100, gameState.affection + affDelta));
     gameState.mp = Math.max(0, Math.min(100, gameState.mp + mpDelta));
     updateGauges(affDelta, mpDelta); updateCharPortrait(); updateTimeDisplay();
+    updateMechanicUI();
 
     if (gameState.turns >= 6) gameState.phase = 2;
     else if (gameState.turns >= 3) gameState.phase = 1;
@@ -646,9 +918,7 @@ async function sendMessage() {
   } catch { showLoading(false); document.getElementById('textbox-text').textContent = 'ん？……ちょっと待って。'; }
 
   resetSendButton();
-  const ev = checkScriptedEvent();
-  if (ev) setTimeout(() => fireScriptedEvent(ev), 1500);
-  else input.focus();
+  input.focus();
 }
 
 function resetSendButton() {
@@ -671,6 +941,69 @@ function updateGauges(affD = null, mpD = null) {
   setTimeout(() => { ab.classList.remove('gauge-flash'); mb.classList.remove('gauge-flash'); }, 1200);
 }
 
+// ===== 固有メカニクス =====
+function getMechanicInfo() {
+  const m = CHAR_MECHANICS[gameState.characterId];
+  if (!m) return null;
+  const val = gameState.mechanic;
+  let currentLevel = m.levels[0];
+  for (const lv of m.levels) { if (val >= lv.at) currentLevel = lv; }
+  return { ...m, val, currentLevel };
+}
+
+function updateMechanicUI() {
+  const el = document.getElementById('mechanic-display');
+  if (!el) return;
+  const info = getMechanicInfo();
+  if (!info) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+
+  if (info.hidden) {
+    el.innerHTML = `<span class="mech-label">${info.emoji} ${info.name}</span><span class="mech-value">???</span>`;
+  } else {
+    const pct = Math.min(100, (info.val / info.max) * 100);
+    el.innerHTML = `<span class="mech-label">${info.emoji} ${info.name}</span>
+      <div class="mech-bar"><div class="mech-fill" style="width:${pct}%;background:${info.color}"></div></div>
+      <span class="mech-value">${info.currentLevel.label}</span>`;
+  }
+}
+
+function advanceMechanic(delta) {
+  const m = CHAR_MECHANICS[gameState.characterId];
+  if (!m) return;
+  gameState.mechanic = Math.max(0, Math.min(m.max, gameState.mechanic + delta));
+  updateMechanicUI();
+}
+
+function tickMechanic() {
+  const m = CHAR_MECHANICS[gameState.characterId];
+  if (!m || !m.perTurn) return;
+  advanceMechanic(m.perTurn);
+}
+
+// メカニクスの状態をAI用テキストに変換
+function getMechanicPromptText() {
+  const info = getMechanicInfo();
+  if (!info) return '';
+  return `\n【固有状態】${info.name}レベル: ${info.currentLevel.label}（${info.currentLevel.effect}）。この状態に応じた言動をしろ。`;
+}
+
+// 裏設定チェック（プレイヤーの発言にキーワードが含まれるか）
+function checkBackstory(playerMessage) {
+  const fragments = BACKSTORY_FRAGMENTS[gameState.characterId] || [];
+  for (let i = 0; i < fragments.length; i++) {
+    if (gameState.backstoryRevealed.includes(i)) continue;
+    const f = fragments[i];
+    if (gameState.affection < f.affectionMin) continue;
+    const re = new RegExp(f.keyword);
+    if (re.test(playerMessage)) {
+      gameState.backstoryRevealed.push(i);
+      return f.fragment.replace(/\$\{name\}/g, playerName);
+    }
+  }
+  return null;
+}
+
 function showFlash(text) {
   const el = document.getElementById('event-flash');
   document.getElementById('event-flash-text').textContent = text;
@@ -682,15 +1015,15 @@ function showFlash(text) {
 function loadClearHistory() { try { return JSON.parse(localStorage.getItem('concafe_clears')) || {}; } catch { return {}; } }
 function saveClearHistory(h) { localStorage.setItem('concafe_clears', JSON.stringify(h)); }
 function markCleared(cid, rank) {
-  const h = loadClearHistory(), ro = { '梅': 1, '竹': 2, '松': 3 };
-  if (!h[cid] || ro[rank] > ro[h[cid]]) h[cid] = rank;
+  const h = loadClearHistory(), ro = { '梅': 1, '竹': 2, '松': 3, 'S': 4 };
+  if (!h[cid] || (ro[rank] || 0) > (ro[h[cid]] || 0)) h[cid] = rank;
   saveClearHistory(h);
 }
 function updateClearBadges() {
   const h = loadClearHistory();
   Object.keys(CHARACTERS).forEach(id => {
     const b = document.getElementById(`clear-badge-${id}`); if (!b) return;
-    if (h[id]) { b.textContent = `攻略済 ${{ '梅': '🥂', '竹': '🍾', '松': '👑' }[h[id]] || '✓'}`; b.className = 'clear-badge badge-cleared'; }
+    if (h[id]) { b.textContent = `攻略済 ${{ '梅': '🥂', '竹': '🍾', '松': '👑', 'S': '👼' }[h[id]] || '✓'}`; b.className = 'clear-badge badge-cleared'; }
     else { b.textContent = '未攻略'; b.className = 'clear-badge badge-uncleared'; }
   });
 }
@@ -705,7 +1038,8 @@ function triggerEnding(rank) {
   const totalPts = loadPoints();
 
   let icon, title, message;
-  if (rank === '松') { icon = '👑'; title = 'PERFECT END ✨'; message = `${char.name}が${bottle.name}を開けた！\n${playerName}ちゃんの完全勝利です🎊`; }
+  if (rank === 'S') { icon = '👼✨'; title = '✦ ANGEL END ✦'; message = `${char.name}が伝説のエンジェルを開けた！！\n${playerName}ちゃん……あなたは神キャストです🪽✨`; }
+  else if (rank === '松') { icon = '👑'; title = 'PERFECT END ✨'; message = `${char.name}が${bottle.name}を開けた！\n${playerName}ちゃんの完全勝利です🎊`; }
   else if (rank === '竹') { icon = '⭐'; title = 'GOOD END 🎉'; message = `${char.name}が${bottle.name}を開けてくれた！\n今夜のトーク力は見事でした。`; }
   else { icon = '🌸'; title = 'NORMAL END 🥂'; message = `${char.name}が${bottle.name}を開けてくれた！\n次はもっと上を目指して！`; }
 
