@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>コンカフェ★メンタルウォーズ v0.0.24</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- タイトル画面 -->
+  <div id="screen-title" class="screen active">
+    <div class="petals">
+      <div class="petal">🌸</div><div class="petal">✿</div><div class="petal">🌸</div>
+      <div class="petal">✿</div><div class="petal">🌸</div><div class="petal">✿</div>
+      <div class="petal">🌸</div><div class="petal">✿</div><div class="petal">🌸</div>
+      <div class="petal">✿</div>
+    </div>
+    <div class="title-bg">
+      <div class="deco-circle c1"></div>
+      <div class="deco-circle c2"></div>
+      <div class="deco-circle c3"></div>
+    </div>
+    <div class="title-content">
+      <div class="title-logo">🍾✨</div>
+      <h1 class="title-text">コンカフェ<br><span class="title-sub">★ メンタルウォーズ ★</span></h1>
+      <p class="title-desc">おじさんをトーク力で落として<br>ボトルを開けさせろ！</p>
+      <div class="name-input-wrap">
+        <label class="name-label" for="player-name-input">あなたの源氏名</label>
+        <input type="text" id="player-name-input" class="name-input" placeholder="例：りりか、あやめ…" maxlength="10">
+      </div>
+      <button type="button" class="btn-primary" onclick="startGame()">START ✦</button>
+      <div id="version-display" class="version-display"></div>
+    </div>
+  </div>
+
+  <!-- キャラ選択画面 -->
+  <div id="screen-character-select" class="screen">
+    <div class="petals">
+      <div class="petal">🌸</div><div class="petal">✿</div><div class="petal">🌸</div>
+      <div class="petal">✿</div><div class="petal">🌸</div><div class="petal">✿</div>
+      <div class="petal">🌸</div><div class="petal">✿</div><div class="petal">🌸</div>
+      <div class="petal">✿</div>
+    </div>
+    <div class="title-bg">
+      <div class="deco-circle c1"></div>
+      <div class="deco-circle c2"></div>
+    </div>
+    <div class="select-wrap">
+      <div class="select-header">
+        <h2>今夜の指名を選んでください 💕</h2>
+        <p class="select-sub">精神力の管理を忘れずに</p>
+      </div>
+      <div class="character-cards">
+
+        <div class="character-card" role="button" tabindex="0" onclick="confirmCharacter('masao')" onkeydown="if(event.key==='Enter')confirmCharacter('masao')">
+          <div id="clear-badge-masao" class="clear-badge badge-uncleared">未攻略</div>
+          <div class="card-ribbon">普通</div>
+          <div class="card-avatar masao-bg">👔</div>
+          <div class="card-name">マサオ <span class="card-age">52歳</span></div>
+          <div class="card-type">健全（自称）な下心おじさん</div>
+          <div class="card-quote">「〇〇ちゃん可愛いから、<br>ついお財布の紐が緩んじゃう〜」</div>
+          <div class="card-footer">
+            <span class="tag-money">💰💰</span>
+            <span class="tag-warn">⚠️ セクハラ注意</span>
+          </div>
+        </div>
+
+        <div class="character-card" role="button" tabindex="0" onclick="confirmCharacter('takashi')" onkeydown="if(event.key==='Enter')confirmCharacter('takashi')">
+          <div id="clear-badge-takashi" class="clear-badge badge-uncleared">未攻略</div>
+          <div class="card-ribbon hard">難</div>
+          <div class="card-avatar takashi-bg">🎒</div>
+          <div class="card-name">タカシ <span class="card-age">42歳</span></div>
+          <div class="card-type">粘着・細客おじさん</div>
+          <div class="card-quote">「この一杯を1時間かけて<br>味わうのが通の楽しみ方だよ」</div>
+          <div class="card-footer">
+            <span class="tag-money">💰</span>
+            <span class="tag-warn">⏰ 時間泥棒注意</span>
+          </div>
+        </div>
+
+        <div class="character-card" role="button" tabindex="0" onclick="confirmCharacter('reiji')" onkeydown="if(event.key==='Enter')confirmCharacter('reiji')">
+          <div id="clear-badge-reiji" class="clear-badge badge-uncleared">未攻略</div>
+          <div class="card-ribbon hell">地獄</div>
+          <div class="card-avatar reiji-bg">👁️</div>
+          <div class="card-name">レイジ <span class="card-age">35歳</span></div>
+          <div class="card-type">激重メンヘラ泥沼おじさん</div>
+          <div class="card-quote">「……昨日、あいつと<br>楽しそうに話してたよね？」</div>
+          <div class="card-footer">
+            <span class="tag-money">💰💰💰</span>
+            <span class="tag-warn">💀 即死トラップあり</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 確認画面 -->
+  <div id="screen-confirm" class="screen">
+    <div class="confirm-wrap">
+      <div class="confirm-card">
+        <div id="confirm-avatar" class="confirm-avatar"></div>
+        <h2 id="confirm-name" class="confirm-name"></h2>
+        <p id="confirm-type" class="confirm-type"></p>
+        <div id="confirm-detail" class="confirm-detail"></div>
+        <div class="difficulty-select">
+          <span class="diff-label">難易度:</span>
+          <button type="button" class="diff-btn diff-active" id="diff-easy" onclick="setDifficulty('easy')">かんたん</button>
+          <button type="button" class="diff-btn" id="diff-normal" onclick="setDifficulty('normal')">ふつう</button>
+        </div>
+        <div class="confirm-buttons">
+          <button type="button" class="btn-secondary" onclick="showScreen('character-select')">← 戻る</button>
+          <button type="button" class="btn-secondary" onclick="showTutorial()">❓ 遊び方</button>
+          <button type="button" class="btn-primary" id="btn-confirm-start" onclick="startSelectedGame()">この客に対応する 💕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ゲーム画面（VNスタイル） -->
+  <div id="screen-game" class="screen">
+    <div class="vn-layout">
+
+      <!-- 背景（全画面） -->
+      <div id="vn-bg" class="vn-bg"></div>
+
+      <!-- キャラクタースプライト（大きく中央表示） -->
+      <div class="vn-sprite-area">
+        <div id="adv-char-frame" class="vn-sprite">
+          <div id="adv-char-avatar" class="vn-sprite-inner"></div>
+        </div>
+      </div>
+
+      <!-- 上部オーバーレイUI -->
+      <div class="vn-overlay-top">
+        <button type="button" class="vn-btn-menu" onclick="confirmBack()">≡</button>
+        <button type="button" class="vn-btn-menu" onclick="openBacklog()">📜</button>
+        <button type="button" class="vn-btn-menu" id="btn-hint" onclick="showHint()" style="display:none">💡</button>
+        <div id="time-display" class="vn-time"></div>
+        <div class="vn-gauges">
+          <div class="vn-gauge-item">
+            <span class="vn-gauge-label">好感度</span>
+            <div class="vn-gauge-bar"><div id="gauge-affection" class="vn-gauge-fill aff-fill" style="width:0%"></div></div>
+            <span id="gauge-affection-num" class="vn-gauge-num">0</span>
+          </div>
+          <div class="vn-gauge-item">
+            <span class="vn-gauge-label">MP</span>
+            <div class="vn-gauge-bar"><div id="gauge-mp" class="vn-gauge-fill mp-fill" style="width:100%"></div></div>
+            <span id="gauge-mp-num" class="vn-gauge-num">100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ローディング表示 -->
+      <div id="loading-indicator" class="loading-indicator" style="display:none">
+        <div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>
+      </div>
+
+      <!-- シャンパンコール演出 -->
+      <div id="champagne-call" class="champagne-call hidden"></div>
+
+      <!-- シチュエーションタグ -->
+      <div id="adv-situation" class="vn-situation"></div>
+
+      <!-- テキストボックス（画面下部・半透明） -->
+      <div class="vn-textbox-area">
+        <div id="textbox-name-tag" class="vn-name-tag"></div>
+        <div class="vn-textbox">
+          <div id="textbox-text" class="vn-text"></div>
+        </div>
+      </div>
+
+      <!-- アイテムバー -->
+      <div id="item-bar" class="vn-item-bar"></div>
+
+      <!-- 選択肢エリア -->
+      <div id="choice-container" class="vn-choice-container hidden">
+        <div id="choice-narration" class="vn-choice-narration"></div>
+        <div id="choice-list" class="vn-choice-list"></div>
+      </div>
+
+      <!-- 入力エリア -->
+      <div id="adv-input-area" class="vn-input-area">
+        <label for="chat-input" class="sr-only">セリフ入力</label>
+        <textarea id="chat-input" class="vn-textarea" placeholder="あなたのセリフを入力… (Enterで送信)" rows="2"></textarea>
+        <button type="button" id="btn-send" class="vn-btn-send" onclick="sendMessage()">送る<br>💬</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- エンディング画面 -->
+  <div id="screen-ending" class="screen">
+    <div class="petals">
+      <div class="petal">🌸</div><div class="petal">✿</div><div class="petal">🌸</div>
+      <div class="petal">✿</div><div class="petal">🌸</div><div class="petal">✿</div>
+      <div class="petal">🌸</div><div class="petal">✿</div><div class="petal">🌸</div>
+      <div class="petal">✿</div>
+    </div>
+    <div class="ending-wrap">
+      <div class="ending-card">
+        <div id="ending-fireworks" class="ending-fireworks">🎆🎇✨</div>
+        <div id="ending-icon" class="ending-icon"></div>
+        <h2 id="ending-title" class="ending-title"></h2>
+        <div id="ending-bottle-display" class="ending-bottle-display"></div>
+        <p id="ending-message" class="ending-message"></p>
+        <div id="ending-score" class="ending-score"></div>
+        <div id="ending-reward" class="ending-reward"></div>
+        <div class="manager-section">
+          <div class="manager-label">👩‍💼 店長のフィードバック</div>
+          <div id="manager-feedback" class="manager-feedback"></div>
+        </div>
+        <div class="ending-actions">
+          <button type="button" class="btn-secondary" id="btn-naikin" onclick="getNaikinGift()">📦 内勤さんからボーナスpt</button>
+          <button type="button" class="btn-secondary" onclick="openShop()">🛒 ショップでアイテム購入</button>
+          <button type="button" class="btn-primary" onclick="showScreen('character-select')">もう一度プレイ 🔄</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ゲームオーバー画面 -->
+  <div id="screen-gameover" class="screen">
+    <div class="gameover-wrap">
+      <div class="gameover-card">
+        <div class="gameover-icon">💔</div>
+        <h2 class="gameover-title">GAME OVER</h2>
+        <p id="gameover-reason" class="gameover-reason"></p>
+        <p class="gameover-sub">心が折れてしまった……</p>
+        <button type="button" class="btn-primary" onclick="showScreen('character-select')">もう一度挑戦 💪</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- チュートリアル -->
+  <div id="tutorial-overlay" class="shop-overlay hidden">
+    <div class="shop-card">
+      <h2 class="shop-title">❓ 遊び方</h2>
+      <div class="tutorial-content">
+        <p>🎯 <strong>目標</strong>: おじさん客を接客してボトルを開けさせよう！</p>
+        <p>💕 <strong>好感度</strong>: うまい返しで上がる。高いほど高級ボトルが開く</p>
+        <p>🔥 <strong>精神力(MP)</strong>: セクハラや粘着で削られる。0でゲームオーバー</p>
+        <p>⏰ <strong>制限時間</strong>: ワンタイ制。ターンが尽きるまでにボトルを開けろ</p>
+        <p>🥃 <strong>アイテム</strong>: タップで使用、長押しで説明。ショップで購入可</p>
+        <p>📜 <strong>バックログ</strong>: 上部の📜ボタンで会話履歴を確認</p>
+        <p>💡 <strong>ヒント</strong>: かんたんモードでは💡ボタンでアドバイスがもらえる</p>
+      </div>
+      <button type="button" class="btn-primary" onclick="closeTutorial()">わかった！</button>
+    </div>
+  </div>
+
+  <!-- バックログ -->
+  <div id="backlog-overlay" class="shop-overlay hidden">
+    <div class="shop-card">
+      <h2 class="shop-title">📜 会話ログ</h2>
+      <div id="backlog-list" class="backlog-list"></div>
+      <button type="button" class="btn-primary" onclick="closeBacklog()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- ショップオーバーレイ -->
+  <div id="shop-overlay" class="shop-overlay hidden">
+    <div class="shop-card">
+      <div class="shop-header">
+        <h2 class="shop-title">🛒 アイテムショップ</h2>
+        <div id="shop-points" class="shop-points"></div>
+      </div>
+      <div id="shop-list" class="shop-list"></div>
+      <button type="button" class="btn-primary" onclick="closeShop()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- イベントフラッシュ -->
+  <div id="event-flash" class="event-flash hidden">
+    <div id="event-flash-text" class="event-flash-text"></div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
